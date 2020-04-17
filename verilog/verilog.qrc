@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/verilog_files">
+        <file>simple.v</file>
+        <file>input_verilog.v</file>
+        <file>netlist.v</file>
+    </qresource>
+</RCC>
