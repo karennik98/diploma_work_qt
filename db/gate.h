@@ -12,28 +12,40 @@ enum class GateType {
     AND,
     OR,
     NOT,
-    XOR
+    NAND,
+    XOR,
+    NOR,
+    XNOR,
+    INVALID
 };
 
 class Gate
 {
 public:
-    Gate();
-    virtual size_t simulate() = 0;
+    Gate(GateType type, QString name,
+         std::shared_ptr<Net> outNet,
+         QVector<std::shared_ptr<Net>> inputNets);// s/tex not i depqu ches karum chisht sarqes petqa jarangman shxta sarqel
+public:
+    size_t simulate();
+public:
     void setName(const QString& name);
-    QString getName() const;
     void setDelay(const size_t delay);
+    void setType(GateType type);
+    void setValue(size_t value);
+public:
+    QString getName() const;
     size_t getDelay() const;
-    void setType(GateType type) const;
     GateType getType() const;
-
+    size_t getValue() const;
+    std::shared_ptr<Net> getOutputNet() const;
+    QVector<std::shared_ptr<Net>> getInputNets();
 private:
+    GateType mType;
     QString mName;
+    std::shared_ptr<Net> mOutputNet;
+    QVector<std::shared_ptr<Net>> mInputNets;
     size_t mDelay;
     size_t mValue;
-    QVector<std::shared_ptr<Net>> mInputNets;
-    std::shared_ptr<Net> mOutNet;
-    GateType mType;
 };
 
 #endif // GATE_H

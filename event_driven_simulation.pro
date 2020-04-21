@@ -1,6 +1,6 @@
 QT -= gui
 
-CONFIG += c++11 console
+CONFIG += c++17 console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -20,6 +20,7 @@ SOURCES += \
         db/netlist.cpp \
         main.cpp \
         netlist_builder/netlistbuilder.cpp \
+        netlist_builder/verilogkeywords.cpp \
         simulation/event.cpp \
         simulation/simulation.cpp \
         simulation/timewheel.cpp
@@ -34,6 +35,7 @@ HEADERS += \
     db/net.h \
     db/netlist.h \
     netlist_builder/netlistbuilder.h \
+    netlist_builder/verilogkeywords.h \
     simulation/event.h \
     simulation/simulation.h \
     simulation/timewheel.h
