@@ -17,17 +17,18 @@ class Net
 {
 public:
     Net(NetType type, const QString& name);
-    Net(NetType type, const QString& name, QVector<std::shared_ptr<Net>> gates);
+    Net(NetType type, const QString& name, QVector<std::shared_ptr<Gate>> gates);
 public:
-    void setValue(size_t value);
-    void setName(const QString& name);
-    void setGate(std::shared_ptr<Gate> gate);
-    void setGates(QVector<std::shared_ptr<Gate>> gates);
+    void setType(NetType type)                          { type != NetType::INVALID ? mType = type : throw  std::runtime_error("Invalid net type!"); }
+    void setValue(size_t value)                         { value <= 1 ? mValue = value : throw  std::runtime_error("Wrong net value!");              }
+    void setName(const QString& name)                   { name != "" ? mName = name : throw  std::runtime_error("Empty name value!");               }
+    void setGates(QVector<std::shared_ptr<Gate>> gates) { mGates = std::move(gates); }
 public:
-    size_t getValue() const;
-    size_t getOldValue() const;
-    QString getName() const;
-    QVector<std::shared_ptr<Gate>> getGates() const;
+    size_t getValue() const                         { return mValue;    } // TODO some checks
+    size_t getOldValue() const                      { return mOldValue; }
+    QString getName() const                         { return mName;     }
+    QVector<std::shared_ptr<Gate>> getGates() const { return mGates;    }
+    NetType getType() const                         { return mType;     }
 public:
     operator bool() const { return !mName.isEmpty(); }
 private:

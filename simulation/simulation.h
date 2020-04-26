@@ -5,7 +5,8 @@
 #include <QMap>
 #include <QString>
 
-class TimeWhell;
+#include "timewheel.h"
+
 class Netlist;
 
 class Simulation
@@ -16,10 +17,9 @@ public:
 public:
     void eventDrivenSimulation(QMap<QString, size_t> primaryInputs);
 public:
-    void setNetlist(std::shared_ptr<Netlist> netlist);
-    void setPrimaryInputs(QMap<QString, size_t> primaryInputs);
+    void setNetlist(std::shared_ptr<Netlist> netlist) { netlist != nullptr ? mNetlist = netlist : throw std::runtime_error("Empty Netlist!"); }
 private:
-    TimeWhell mTimeWheel;
+    TimeWheel mTimeWheel;
     std::shared_ptr<Netlist> mNetlist;
 };
 

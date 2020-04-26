@@ -28,17 +28,17 @@ public:
 public:
     size_t simulate();
 public:
-    void setName(const QString& name);
-    void setDelay(const size_t delay);
-    void setType(GateType type);
-    void setValue(size_t value);
+    void setName(const QString& name) { name != "" ? mName = name : throw std::runtime_error("Empty gate name!");                  }
+    void setDelay(const size_t delay) { mDelay = delay;                                                                            }
+    void setType(GateType type)       { type != GateType::INVALID ? mType = type : throw std::runtime_error("Invalid gate type!"); }
+    void setValue(size_t value)       { value <= 1 ? mValue = value : throw std::runtime_error("Wrong value!");                    }
 public:
-    QString getName() const;
-    size_t getDelay() const;
-    GateType getType() const;
-    size_t getValue() const;
-    std::shared_ptr<Net> getOutputNet() const;
-    QVector<std::shared_ptr<Net>> getInputNets();
+    QString getName() const                            { return mName;      } // TODO need some checks
+    size_t getDelay() const                            { return mDelay;     }
+    GateType getType() const                           { return mType;      }
+    size_t getValue() const                            { return mValue;     }
+    std::shared_ptr<Net> getOutputNet() const          { return mOutputNet; }
+    QVector<std::shared_ptr<Net>> getInputNets() const { return mInputNets; }
 private:
     GateType mType;
     QString mName;

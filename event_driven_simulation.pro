@@ -18,6 +18,7 @@ SOURCES += \
         db/gate.cpp \
         db/net.cpp \
         db/netlist.cpp \
+        logic_operations/logicoperations.cpp \
         main.cpp \
         netlist_builder/netlistbuilder.cpp \
         netlist_builder/verilogkeywords.cpp \
@@ -34,6 +35,7 @@ HEADERS += \
     db/gate.h \
     db/net.h \
     db/netlist.h \
+    logic_operations/logicoperations.h \
     netlist_builder/netlistbuilder.h \
     netlist_builder/verilogkeywords.h \
     simulation/event.h \

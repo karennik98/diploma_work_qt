@@ -4,20 +4,24 @@
 #include "db/netlist.h"
 
 #include <QTextStream>
-
+#include <QException>
+#include <QDebug>
 
 NetlistBuilder::NetlistBuilder(const QString &path)
     : mFilePath(path)
-    , mFile(new QFile(path))
+    , mFile(nullptr)
+    , mNetlist{}
 {
-    mFile->open(QIODevice::ReadOnly | QIODevice::Text);
 }
 
 bool NetlistBuilder::buildNetlist() {
+    mFile = std::make_shared<QFile>();
+    mFile->setFileName(mFilePath);
+    mFile->open(QIODevice::ReadOnly | QIODevice::Text);
     QTextStream fileStream(&*mFile);
-    while(!mFile->atEnd()) {
-        mLine = fileStream.readLine();
 
+    mLine =  mLine = fileStream.readLine();
+    while(!mLine.isNull()) {
         removeComment();
         removeWhitespaces();
 
@@ -25,63 +29,92 @@ bool NetlistBuilder::buildNetlist() {
             continue;
         }
 
-        QString keyword = VerilogKeywords::getKeyword(mLine);
+        buildFromLine();
 
-        if(VerilogKeywords::isNet(keyword)) {
-            mLine.remove(keyword);
-            removeWhitespaces();
+        mLine = fileStream.readLine();
+    }
 
-            QStringList netNames = getNetNames();
-            NetType type = VerilogKeywords::getNetType(keyword);
+    return true;
+}
 
-            if(netNames.size() > 0) {
-                for(auto& name : netNames) {
-                    addNet(name, type);
-                }
+void NetlistBuilder::buildFromLine() {
+    QString keyword = VerilogKeywords::getKeyword(mLine);
+
+    if(VerilogKeywords::isNet(keyword)) {
+        mLine.remove(keyword);
+        removeWhitespaces();
+
+        QStringList netNames = getNetNames();
+        NetType type = VerilogKeywords::getNetType(keyword);
+
+        if(netNames.size() > 0) {
+            for(auto& name : netNames) {
+                addNet(name, type);
             }
         }
+    } else if(VerilogKeywords::isGate(keyword)) {
+        GateType type = VerilogKeywords::getGateType(keyword);
 
-        if(VerilogKeywords::isGate(keyword)) {
-            GateType type = VerilogKeywords::getGateType(keyword);
+        mLine.remove(keyword);
+        removeWhitespaces();
 
-            mLine.remove(keyword);
-            removeWhitespaces();
+        QString gateName = getGateName();
 
-            QString gateName = getGateName();
+        mLine.remove(gateName);
+        removeWhitespaces();
 
-            mLine.remove(gateName);
-            removeWhitespaces();
-
-            QVector<Net> nets = getGateNets();
-            if(nets.size() > 1) {
-                std::shared_ptr<Gate> gate{new Gate{type, gateName, nets[0], {nets[1], nets[2]}};
+        QVector<std::shared_ptr<Net>> nets = getGateNets();
+        if(nets.size() > 1) {
+            if(type == GateType::NOT) {
+                std::shared_ptr<Gate> gate{new Gate{ type, gateName, nets[0], {nets[1]}}};
             }
-
+            std::shared_ptr<Gate> gate{new Gate{ type, gateName, nets[0], {nets[1], nets[2]}}};
+            addGate(gate);
         }
+    } else if(VerilogKeywords::isStartModule(keyword)) {
+        // TODO
+    } else if(VerilogKeywords::isEndModule(keyword)) {
+        //TODO
+    } else {
+        throw std::runtime_error("Invalid verilog keyword");
     }
 }
 
-QString NetlistBuilder::getLine() const {
-
+void NetlistBuilder::addNet(const QString& name, NetType type) {
+    try {
+        std::shared_ptr<Net> net = std::make_shared<Net>(type, name);
+        mNetlist->setNet(net);
+    } catch (...) {
+        qDebug()<<"haaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    }
 }
 
-QStringList NetlistBuilder::getNetNames() const {
+void NetlistBuilder::addGate(const std::shared_ptr<Gate> &gate) {
+    mNetlist->setGate(gate);
+}
+
+QStringList NetlistBuilder::getNetNames() /*const*/ {
     QStringList names;
+    std::string line = mLine.toStdString();
+
     if(mLine.contains(",")) {
         std::string delimater = ",";
         size_t pos = 0;
         std::string name;
-        while ((pos = mLine.toStdString().find(delimater)) != std::string::npos)
+        while ((pos = line.find(delimater)) != std::string::npos)
         {
-            name = mLine.toStdString().substr(0, pos);
+            name = line.substr(0, pos);
             removeWhitespaces(name);
             names.push_back(QString::fromStdString(name));
-            mLine.toStdString().erase(0, pos + delimater.length());
+            line.erase(0, pos + delimater.length());
         }
-    } else {
-      size_t endPos = mLine.toStdString().find(";") - 1;
-      names.push_back(QString::fromStdString(mLine.toStdString().substr(0, endPos)));
+
     }
+
+    size_t endPos = line.find(";");
+    names.push_back(QString::fromStdString(line.substr(0, endPos)));
+
+    mLine = QString::fromStdString(line);
 
     return names;
 }
@@ -90,8 +123,8 @@ QString NetlistBuilder::getGateName() const {
     return QString::fromStdString(mLine.toStdString().substr(0, mLine.toStdString().find("(")));
 }
 
-QVector<Net> NetlistBuilder::getGateNets() const {
-    QVector<Net> nets{};
+QVector<std::shared_ptr<Net>> NetlistBuilder::getGateNets() const {
+    QVector<std::shared_ptr<Net>> nets{};
 
     if(mLine.contains(",")) {
         std::string delimater = ",";
@@ -102,7 +135,7 @@ QVector<Net> NetlistBuilder::getGateNets() const {
         {
             name = mLine.toStdString().substr(0, pos);
             removeWhitespaces(name);
-            Net net = mNetlist->getNetByName(QString::fromStdString(name));
+            std::shared_ptr<Net> net = mNetlist->getNetByName(QString::fromStdString(name));
             if(net) {
                 nets.push_back(net);
             } else {
@@ -113,30 +146,47 @@ QVector<Net> NetlistBuilder::getGateNets() const {
     } else {
         size_t end = mLine.toStdString().find(")") - 1;
         QString name = QString::fromStdString(mLine.toStdString().substr(1, end));
-        Net net = mNetlist->getNetByName(name);
+        std::shared_ptr<Net> net = mNetlist->getNetByName(name);
         if(net) {
             nets.push_back(net);
         } else {
             throw std::runtime_error("unknown net name");
         }
     }
+    return nets;
 }
 
-void NetlistBuilder::removeComment() const {
-
+void NetlistBuilder::removeComment() {
+    std::string line =  mLine.toStdString();
+    if(size_t pos = line.find("//"); pos != std::string::npos) {
+        line.replace(pos, line.size()-1, "");
+    }
+    mLine = QString::fromStdString(line);
 }
 
-void NetlistBuilder::removeWhitespaces() const {
-
+void NetlistBuilder::removeWhitespaces() {
+    std::string line = mLine.toStdString();
+    for(auto& el : line)
+    {
+        if(el == ' ')
+        {
+            line.erase(line.find(" "), 1);
+        }
+    }
+    mLine = QString::fromStdString(line);
 }
 
-bool NetlistBuilder::addGate(QString &line) {
-
+void NetlistBuilder::removeWhitespaces(std::string &str) const {
+    for(auto& el : str)
+    {
+        if(el == ' ')
+        {
+            str.erase(str.find(" "), 1);
+        }
+    }
 }
 
-bool NetlistBuilder::addNet(QString &line, NetType type) {
 
-}
 
 
 

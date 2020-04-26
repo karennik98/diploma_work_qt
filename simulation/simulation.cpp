@@ -5,14 +5,15 @@
 #include "event.h"
 
 #include <QVector>
+#include <QDebug>
 
 Simulation::Simulation(std::shared_ptr<Netlist> netlist)
-    : mNetlist(netlist)
+    : mTimeWheel{}
+    , mNetlist(netlist)
 {
 }
 
-void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs)
-{
+void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs) {
     auto primaryInputNets = mNetlist->getPrimaryInputNets();
 
     for(auto input = primaryInputs.begin(); input != primaryInputs.end(); ++input) {
@@ -31,7 +32,7 @@ void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs)
         }
     }
 
-    mTimeWheel.addEventList(initialEvents);
+    mTimeWheel.insert(initialEvents);
 
     size_t currentTime = startTime;
 
@@ -44,6 +45,11 @@ void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs)
             auto newValue = currentGate->simulate();
 
             if(oldValue != newValue) {
+                qDebug() << "time: " << currentTime
+                                  << "; gate: " << currentGate->getName()
+                                  << "; old value: " << static_cast<int>(oldValue)
+                                  << "; new value: " << static_cast<int>(newValue);
+
                 auto gateOutputNet = currentGate->getOutputNet();
                 if(gateOutputNet) {
                     auto gates = gateOutputNet->getGates();
@@ -54,6 +60,7 @@ void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs)
                     }
                 }
             }
+            mTimeWheel.insert(futureEvents);
         }
     }
 }

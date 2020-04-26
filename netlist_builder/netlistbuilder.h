@@ -18,23 +18,23 @@ class NetlistBuilder
 public:
     NetlistBuilder() = default;
     NetlistBuilder(const QString& path);
-    void setFilePath(const QString& path) { mFilePath = path;}
     bool buildNetlist();
-    std::shared_ptr<Netlist> getNetlist() const { return mNetlist; }
+    void setFilePath(const QString& path)       { mFilePath = path; }
+    std::shared_ptr<Netlist> getNetlist() const { return mNetlist;  }
 private:
-    QString getLine() const;
-    QStringList getNetNames() const;
-
+    QStringList getNetNames() /*const*/;
     QString getGateName() const;
-    QVector<Net> getGateNets() const;
+    QVector<std::shared_ptr<Net>> getGateNets() const;
 private:
-    void removeComment() const;
-    void removeWhitespaces() const;
-private:
-    bool addGate(QString& line);
-    bool addNet(QString& line, NetType type);
-private:
+    void removeComment();
+    void removeWhitespaces();
     void removeWhitespaces(std::string& str) const;
+private:
+//    bool addGate(QString& line);
+    void addNet(const QString& name, NetType type);
+    void addGate(const std::shared_ptr<Gate>& gate);
+private:
+    void buildFromLine();
 private:
     QString mFilePath;
     QString mLine;
