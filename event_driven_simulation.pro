@@ -1,6 +1,9 @@
-QT -= gui
+QT += gui
+QT += widgets
+QT += core
+QT += chart
 
-CONFIG += c++17 console
+CONFIG += c++17 #console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -18,6 +21,7 @@ SOURCES += \
         db/gate.cpp \
         db/net.cpp \
         db/netlist.cpp \
+        gui/mainwindow.cpp \
         logic_operations/logicoperations.cpp \
         main.cpp \
         netlist_builder/netlistbuilder.cpp \
@@ -35,6 +39,7 @@ HEADERS += \
     db/gate.h \
     db/net.h \
     db/netlist.h \
+    gui/mainwindow.h \
     logic_operations/logicoperations.h \
     netlist_builder/netlistbuilder.h \
     netlist_builder/verilogkeywords.h \
