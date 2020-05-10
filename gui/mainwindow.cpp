@@ -69,7 +69,7 @@ void MainWindow::openFile() {
                 nullptr,
                 "Open Document",
                 QDir::currentPath(),
-                "All files (*.*) ;; Document files (*.doc *.rtf *.v);; PNG files (*.png)");
+                "ocument files (*.v)");
 
     if(mFilePath.isNull() ) {
         throw std::runtime_error("File dont selected");
