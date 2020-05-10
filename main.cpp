@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
+    MainWindow mainWindow;
+
     NetlistBuilder builder(":/verilog_files/input_verilog.v");
     builder.buildNetlist();
     auto netlist = builder.getNetlist();
@@ -35,7 +37,6 @@ int main(int argc, char *argv[])
         qDebug()<<"";
     }
 
-    MainWindow mainWindow;
     mainWindow.show();
 
     return app.exec();

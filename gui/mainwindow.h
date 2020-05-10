@@ -9,6 +9,7 @@
 
 class QTabBar;
 class QTextEdit;
+class QTabWidget;
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +24,9 @@ public:
     ~MainWindow();
 public:
     void setupTabBar();
+    void setupTimingTab();
+    void setupTextEditTab();
+    void setupFileDialogTab();
 private:
     void setEditor();
 private slots:
@@ -31,6 +35,7 @@ private:
     std::shared_ptr<QTabBar> mTabBar;
     QString mFilePath;
     QTextEdit* mTextEdit;
+    QTabWidget* mTabs;
 };
 
 #endif // MAINWINDOW_H

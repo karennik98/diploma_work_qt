@@ -1,7 +1,6 @@
 QT += gui
 QT += widgets
 QT += core
-QT += chart
 
 CONFIG += c++17 #console
 CONFIG -= app_bundle

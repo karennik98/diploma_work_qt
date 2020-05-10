@@ -4,6 +4,8 @@
 #include <QString>
 #include <QVector>
 
+#include <memory>
+
 class Gate;
 
 enum class NetType {

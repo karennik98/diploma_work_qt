@@ -1,6 +1,6 @@
 #ifndef LOGICOPERATIONS_H
 #define LOGICOPERATIONS_H
-
+#include <cstddef>
 
 class LogicOperations
 {
