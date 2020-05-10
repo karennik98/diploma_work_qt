@@ -19,23 +19,19 @@ int main(int argc, char *argv[])
 
     Simulation simulation(netlist);
 
+    srand(static_cast<unsigned int>(time(nullptr)));
+
     auto inputNets = netlist->getPrimaryInputNets();
-    QMap<QString, size_t> primaryInputs {};
-    std::srand(static_cast<unsigned int>(time(nullptr)));
+    QVector<QMap<QString, size_t>> primaryInputs {};
+    primaryInputs.resize(5);
     for(int i = 0; i < 5; ++i) {
         // generate random primary inputs
-        srand(static_cast<unsigned int>(time(nullptr)));
-        size_t randomLogicValue;
         for(const auto& el: inputNets) {
-            randomLogicValue = rand() % 2;
-            primaryInputs.insert(el->getName(), randomLogicValue);
+            primaryInputs[i].insert(el->getName(), rand() % 2);
         }
-        qDebug()<<primaryInputs;
-        primaryInputs.clear();
-        simulation.eventDrivenSimulation(primaryInputs);
-        qDebug()<<"______________________________________________________________________";
-        qDebug()<<"";
     }
+    qDebug()<<primaryInputs<<'\n';
+    simulation.eventDrivenSimulation(primaryInputs);
 
     mainWindow.show();
 
