@@ -1,4 +1,5 @@
 #include <QCoreApplication>
+#include <QDebug>
 
 #include "netlist_builder/netlistbuilder.h"
 #include "db/netlist.h"
@@ -8,22 +9,28 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    NetlistBuilder builder(":/verilog_files/simple.v");
+    NetlistBuilder builder(":/verilog_files/input_verilog.v");
     builder.buildNetlist();
     auto netlist = builder.getNetlist();
 
-    // generate random primary inputs
-    srand(static_cast<unsigned int>(time(nullptr)));
-    auto inputNets = netlist->getPrimaryInputNets();
-    QMap<QString, size_t> primaryInputs {};
-    size_t randomLogicValue;
-    for(const auto& el: inputNets) {
-        randomLogicValue = rand() % 2;
-        primaryInputs.insert(el->getName(), randomLogicValue);
-    }
-
     Simulation simulation(netlist);
-    simulation.eventDrivenSimulation(primaryInputs);
+
+    auto inputNets = netlist->getPrimaryInputNets();
+
+    for(int i = 0; i < 5; ++i) {
+        // generate random primary inputs
+        srand(static_cast<unsigned int>(time(nullptr)));
+        QMap<QString, size_t> primaryInputs {};
+        size_t randomLogicValue;
+        for(const auto& el: inputNets) {
+            randomLogicValue = rand() % 2;
+            primaryInputs.insert(el->getName(), randomLogicValue);
+        }
+        qDebug()<<primaryInputs;
+        simulation.eventDrivenSimulation(primaryInputs);
+        qDebug()<<"______________________________________________________________________";
+        qDebug()<<"";
+    }
 
     return a.exec();
 }

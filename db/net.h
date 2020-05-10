@@ -23,6 +23,7 @@ public:
     void setValue(size_t value)                         { value <= 1 ? mValue = value : throw  std::runtime_error("Wrong net value!");              }
     void setName(const QString& name)                   { name != "" ? mName = name : throw  std::runtime_error("Empty name value!");               }
     void setGates(QVector<std::shared_ptr<Gate>> gates) { mGates = std::move(gates); }
+    void setGate(std::shared_ptr<Gate> gate)            { mGates.push_back(gate); }
 public:
     size_t getValue() const                         { return mValue;    } // TODO some checks
     size_t getOldValue() const                      { return mOldValue; }

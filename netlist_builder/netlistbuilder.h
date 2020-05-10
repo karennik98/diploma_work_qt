@@ -24,11 +24,12 @@ public:
 private:
     QStringList getNetNames() /*const*/;
     QString getGateName() const;
-    QVector<std::shared_ptr<Net>> getGateNets() const;
+    QVector<std::shared_ptr<Net>> getGateNets();
 private:
     void removeComment();
     void removeWhitespaces();
     void removeWhitespaces(std::string& str) const;
+    void removeUselessSimbols();
 private:
 //    bool addGate(QString& line);
     void addNet(const QString& name, NetType type);

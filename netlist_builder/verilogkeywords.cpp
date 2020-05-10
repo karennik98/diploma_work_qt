@@ -25,7 +25,7 @@ const QMap<QString, NetType> VerilogKeywords::netTypes = {
 
 
 QString VerilogKeywords::getKeyword(const QString &line) {
-    QVector<QString> keywords = { _module, _input, _output, _wire, _endmodule, _or, _and, _xor, _not };
+    QVector<QString> keywords = { _input, _output, _wire, _endmodule, _module, _xor, _or, _and, _not };
     for(const auto& word : keywords) {
         if(line.contains(word)) {
             return word;

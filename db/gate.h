@@ -39,12 +39,14 @@ public:
     size_t getValue() const                            { return mValue;     }
     std::shared_ptr<Net> getOutputNet() const          { return mOutputNet; }
     QVector<std::shared_ptr<Net>> getInputNets() const { return mInputNets; }
+public:
+    bool operator==(const Gate& gate);
 private:
     GateType mType;
     QString mName;
     std::shared_ptr<Net> mOutputNet;
     QVector<std::shared_ptr<Net>> mInputNets;
-    size_t mDelay;
+    size_t mDelay = 1;
     size_t mValue;
 };
 

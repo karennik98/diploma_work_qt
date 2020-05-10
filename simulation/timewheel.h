@@ -16,6 +16,7 @@ public:
     void insert(std::shared_ptr<Event> item);
 public:
     size_t length() const { return mEvents.size(); }
+    std::shared_ptr<Gate> find(std::shared_ptr<Gate> gate) const;
 public:
     QVector<std::shared_ptr<Event>>& operator[](size_t idx);
 private:

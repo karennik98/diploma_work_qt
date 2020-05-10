@@ -10,7 +10,7 @@
 NetlistBuilder::NetlistBuilder(const QString &path)
     : mFilePath(path)
     , mFile(nullptr)
-    , mNetlist{}
+    , mNetlist(std::make_shared<Netlist>())
 {
 }
 
@@ -26,6 +26,7 @@ bool NetlistBuilder::buildNetlist() {
         removeWhitespaces();
 
         if(mLine.isEmpty()) {
+            mLine = fileStream.readLine();
             continue;
         }
 
@@ -55,20 +56,26 @@ void NetlistBuilder::buildFromLine() {
     } else if(VerilogKeywords::isGate(keyword)) {
         GateType type = VerilogKeywords::getGateType(keyword);
 
-        mLine.remove(keyword);
+        mLine.remove(0, keyword.size());
         removeWhitespaces();
 
         QString gateName = getGateName();
 
         mLine.remove(gateName);
         removeWhitespaces();
+        removeUselessSimbols();
 
         QVector<std::shared_ptr<Net>> nets = getGateNets();
         if(nets.size() > 1) {
             if(type == GateType::NOT) {
                 std::shared_ptr<Gate> gate{new Gate{ type, gateName, nets[0], {nets[1]}}};
+//                nets[0]->setGate(gate);
+                nets[1]->setGate(gate);
             }
             std::shared_ptr<Gate> gate{new Gate{ type, gateName, nets[0], {nets[1], nets[2]}}};
+//            nets[0]->setGate(gate);
+            nets[1]->setGate(gate);
+            nets[2]->setGate(gate);
             addGate(gate);
         }
     } else if(VerilogKeywords::isStartModule(keyword)) {
@@ -81,12 +88,7 @@ void NetlistBuilder::buildFromLine() {
 }
 
 void NetlistBuilder::addNet(const QString& name, NetType type) {
-    try {
-        std::shared_ptr<Net> net = std::make_shared<Net>(type, name);
-        mNetlist->setNet(net);
-    } catch (...) {
-        qDebug()<<"haaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    }
+    mNetlist->setNet(std::make_shared<Net>(type, name));
 }
 
 void NetlistBuilder::addGate(const std::shared_ptr<Gate> &gate) {
@@ -123,17 +125,17 @@ QString NetlistBuilder::getGateName() const {
     return QString::fromStdString(mLine.toStdString().substr(0, mLine.toStdString().find("(")));
 }
 
-QVector<std::shared_ptr<Net>> NetlistBuilder::getGateNets() const {
+QVector<std::shared_ptr<Net>> NetlistBuilder::getGateNets() {
     QVector<std::shared_ptr<Net>> nets{};
 
+    std::string line = mLine.toStdString();
     if(mLine.contains(",")) {
         std::string delimater = ",";
         size_t pos = 0;
         std::string name;
-
-        while ((pos = mLine.toStdString().find(delimater)) != std::string::npos)
+        while ((pos = line.find(delimater)) != std::string::npos)
         {
-            name = mLine.toStdString().substr(0, pos);
+            name = line.substr(0, pos);
             removeWhitespaces(name);
             std::shared_ptr<Net> net = mNetlist->getNetByName(QString::fromStdString(name));
             if(net) {
@@ -141,18 +143,22 @@ QVector<std::shared_ptr<Net>> NetlistBuilder::getGateNets() const {
             } else {
                 throw std::runtime_error("unknown net name");
             }
-            mLine.toStdString().erase(0, pos + delimater.length());
+            line.erase(0, pos + delimater.length());
         }
-    } else {
-        size_t end = mLine.toStdString().find(")") - 1;
-        QString name = QString::fromStdString(mLine.toStdString().substr(1, end));
-        std::shared_ptr<Net> net = mNetlist->getNetByName(name);
-        if(net) {
-            nets.push_back(net);
-        } else {
-            throw std::runtime_error("unknown net name");
-        }
+
     }
+
+    size_t endPos = line.find(";");
+    std::string name = line.substr(0, endPos);
+    std::shared_ptr<Net> net = mNetlist->getNetByName(QString::fromStdString(name));
+    if(net) {
+        nets.push_back(net);
+    } else {
+        throw std::runtime_error("unknown net name");
+    }
+
+    mLine = QString::fromStdString(line);
+
     return nets;
 }
 
@@ -182,6 +188,14 @@ void NetlistBuilder::removeWhitespaces(std::string &str) const {
         if(el == ' ')
         {
             str.erase(str.find(" "), 1);
+        }
+    }
+}
+
+void NetlistBuilder::removeUselessSimbols() {
+    for(auto& el : mLine) {
+        if(!el.isLetter() && (el == '(' || el == ')' || el ==';')) {
+            mLine.remove(el);
         }
     }
 }

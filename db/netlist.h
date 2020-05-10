@@ -13,7 +13,11 @@ class Gate;
 class Netlist
 {
 public:
-    Netlist() = default;
+    Netlist()
+        : mGates{}
+        , mNets{}
+    {
+    }
 public:
     bool setGate(std::shared_ptr<Gate> gate);
     bool setNet(std::shared_ptr<Net> net);

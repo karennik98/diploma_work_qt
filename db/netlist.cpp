@@ -1,4 +1,5 @@
 #include "netlist.h"
+#include <QDebug>
 
 bool Netlist::setGate(std::shared_ptr<Gate> gate) {
     if(gate != nullptr) {
@@ -9,11 +10,9 @@ bool Netlist::setGate(std::shared_ptr<Gate> gate) {
 }
 
 bool Netlist::setNet(std::shared_ptr<Net> net) {
-    if(mNets.isDetached()) { // detach error
-        if(net != nullptr) {
-            mNets.insert(net->getName(), net);
-            return true;
-        }
+    if(net != nullptr) {
+        mNets.insert(net->getName(), net);
+        return true;
     }
     return false;
 }

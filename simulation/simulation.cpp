@@ -8,8 +8,8 @@
 #include <QDebug>
 
 Simulation::Simulation(std::shared_ptr<Netlist> netlist)
-    : mTimeWheel{}
-    , mNetlist(netlist)
+//    : mTimeWheel{}
+    : mNetlist(netlist)
 {
 }
 
@@ -28,10 +28,13 @@ void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs) {
     for(auto net : primaryInputNets) {
         auto gates = net->getGates();
         for(auto gate : gates) {
-            initialEvents.push_back(std::make_shared<Event>(startTime, gate));
+            if(!isOnEventList(initialEvents, gate)) {
+                initialEvents.push_back(std::make_shared<Event>(startTime, gate));
+            }
         }
     }
 
+    TimeWheel mTimeWheel;
     mTimeWheel.insert(initialEvents);
 
     size_t currentTime = startTime;
@@ -46,9 +49,9 @@ void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs) {
 
             if(oldValue != newValue) {
                 qDebug() << "time: " << currentTime
-                                  << "; gate: " << currentGate->getName()
-                                  << "; old value: " << static_cast<int>(oldValue)
-                                  << "; new value: " << static_cast<int>(newValue);
+                         << "; gate: " << currentGate->getName()
+                         << "; old value: " << static_cast<int>(oldValue)
+                         << "; new value: " << static_cast<int>(newValue);
 
                 auto gateOutputNet = currentGate->getOutputNet();
                 if(gateOutputNet) {
@@ -64,6 +67,20 @@ void Simulation::eventDrivenSimulation(QMap<QString, size_t> primaryInputs) {
         }
     }
 }
+
+//bool Simulation::isOnEventList(std::shared_ptr<Gate> gate) const {
+//    return mTimeWheel.find(gate) != nullptr;
+//}
+
+bool Simulation::isOnEventList(QVector<std::shared_ptr<Event>>& events, std::shared_ptr<Gate> gate) const {
+    for(const auto& event : events) {
+        if(*event->getGate() == *gate) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 
 

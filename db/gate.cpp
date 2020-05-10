@@ -15,11 +15,13 @@ size_t Gate::simulate() {
         case GateType::OR: {
             output = LogicOperations::OR(mInputNets[0]->getValue(), mInputNets[1]->getValue());
             mOutputNet->setValue(output);
+            setValue(output);
             return output;
         }
         case GateType::AND: {
             output = LogicOperations::AND(mInputNets[0]->getValue(), mInputNets[1]->getValue());
             mOutputNet->setValue(output);
+            setValue(output);
             return output;
         }
         case GateType::NOR: {
@@ -28,16 +30,19 @@ size_t Gate::simulate() {
         case GateType::NOT: {
             output = LogicOperations::NOT(mInputNets[0]->getValue());
             mOutputNet->setValue(output);
+            setValue(output);
             return output;
         }
         case GateType::XOR: {
             output = LogicOperations::XOR(mInputNets[0]->getValue(), mInputNets[1]->getValue());
             mOutputNet->setValue(output);
+            setValue(output);
             return output;
         }
         case GateType::NAND: {
             output = LogicOperations::NAND(mInputNets[0]->getValue(), mInputNets[1]->getValue());
             mOutputNet->setValue(output);
+            setValue(output);
             return output;
         }
         case GateType::XNOR: {
@@ -47,4 +52,9 @@ size_t Gate::simulate() {
             throw std::runtime_error(" INVALID gate type");
         }
     }
+}
+
+bool Gate::operator==(const Gate &gate) {
+    // TODO more smart
+    return mName == gate.getName();
 }
