@@ -22,7 +22,7 @@ public:
     Net(NetType type, const QString& name, QVector<std::shared_ptr<Gate>> gates);
 public:
     void setType(NetType type)                          { type != NetType::INVALID ? mType = type : throw  std::runtime_error("Invalid net type!"); }
-    void setValue(size_t value)                         { value <= 1 ? mValue = value : throw  std::runtime_error("Wrong net value!");              }
+    void setValue(size_t value);
     void setName(const QString& name)                   { name != "" ? mName = name : throw  std::runtime_error("Empty name value!");               }
     void setGates(QVector<std::shared_ptr<Gate>> gates) { mGates = std::move(gates); }
     void setGate(std::shared_ptr<Gate> gate)            { mGates.push_back(gate); }
@@ -38,7 +38,7 @@ private:
     NetType mType;
     QString mName;
     QVector<std::shared_ptr<Gate>> mGates;
-    size_t mValue;
+    size_t mValue = 2;
     size_t mOldValue;
 };
 

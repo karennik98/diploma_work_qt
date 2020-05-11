@@ -79,6 +79,8 @@ void Simulation::eventDrivenSimulation(QVector<QMap<QString, size_t>> primaryInp
                 mTimeWheel.insert(futureEvents);
             }
         }
+
+        netScanner();
         mOutput->push_back("______________________________________________________________________\n");
     }
 }
@@ -96,12 +98,27 @@ bool Simulation::isOnEventList(QVector<std::shared_ptr<Event>>& events, std::sha
 void Simulation::setupDumpedNets() {
     auto primaryInputNets = mNetlist->getPrimaryInputNets();
     for(auto net : primaryInputNets) {
-        mDumpedData.insert(net->getName(), std::make_shared<QLineSeries>());
+        mDumpedData.insert(net->getName(), QVector<size_t>());
     }
 
     auto primaryOutputs = mNetlist->getPrimaryOutputNets();
     for(auto net : primaryOutputs) {
-        mDumpedData.insert(net->getName(), std::make_shared<QLineSeries>());
+        mDumpedData.insert(net->getName(), QVector<size_t>());
+    }
+}
+
+void Simulation::netScanner() {
+    auto primaryInputNets = mNetlist->getPrimaryInputNets();
+    auto primaryOutputs = mNetlist->getPrimaryOutputNets();
+
+    for(auto net = primaryInputNets.begin(); net != primaryInputNets.end(); ++net) {
+        size_t signal = net.value()->getValue();
+        mDumpedData[net.key()].push_back(signal);
+    }
+
+    for(auto net = primaryOutputs.begin(); net != primaryOutputs.end(); ++net) {
+        size_t signal = net.value()->getValue();
+        mDumpedData[net.key()].push_back(signal);
     }
 }
 

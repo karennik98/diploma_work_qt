@@ -22,15 +22,16 @@ public:
 public:
     std::shared_ptr<QStringList> getOutput() const    { return mOutput; }
 public:
-    QMap<QString, std::shared_ptr<QLineSeries>> getDumpedData() const  { return mDumpedData; }
+    QMap<QString, QVector<size_t>> getDumpedData() const  { return mDumpedData; }
 public:
     bool isOnEventList(std::shared_ptr<Gate> gate) const;
     bool isOnEventList(QVector<std::shared_ptr<Event>>& events, std::shared_ptr<Gate> gate) const;
 public:
     void setupDumpedNets();
+    void netScanner();
 private:
     std::shared_ptr<Netlist> mNetlist;
-    QMap<QString, std::shared_ptr<QLineSeries>> mDumpedData;
+    QMap<QString, QVector<size_t>> mDumpedData;
     std::shared_ptr<QStringList> mOutput;
 };
 

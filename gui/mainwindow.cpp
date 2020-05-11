@@ -13,7 +13,6 @@
 #include <QFile>
 #include <QTextStream>
 #include <QVBoxLayout>
-#include <QtCharts>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -54,16 +53,13 @@ void MainWindow::setupSimulationTab() {
     mSimulationOutputTextEdit = new QTextEdit(mTabs);
     QObject::connect(this, &MainWindow::simulationOutput, this, &MainWindow::dumpSimulationOutput);
 
-//    QLineSeries *series = new QLineSeries();
-    QChart *chart = new QChart();
-//    chart->legend()->hide();
-//    chart->addSeries(series);
-//    chart->createDefaultAxes();
-    QChartView *chartView = new QChartView(/*chart*/);
-    chartView->setRenderHint(QPainter::Antialiasing);
+
+    mChartView = new QChartView();
+
+    mChartView->setRenderHint(QPainter::Antialiasing);
 
     timingLayout->addWidget(startSimulationButton);
-    timingLayout->addWidget(chartView);
+    timingLayout->addWidget(mChartView);
     timingLayout->addWidget(mSimulationOutputTextEdit);
     timingAndSimulation->setLayout(timingLayout);
 
@@ -85,12 +81,47 @@ void MainWindow::setupFileDialogTab() {
     mTabs->addTab(fileDialogWidget, "Select file");
 }
 
+void MainWindow::setupChartValues() {
+    QChart *chart = new QChart();
+    size_t distance = 2;
+    auto data = mSimulation->getDumpedData();
+    qDebug()<<data;
+    for(auto el = data.begin(); el != data.end(); ++el) {
+        QLineSeries* series = new QLineSeries();
+        auto inputVector = el.value();
+        for(int i = 0; i < inputVector.size(); ++i) {
+            if(i == 0 && inputVector[i] == 0) {
+                series->append(i, inputVector[i] + distance);
+            } else if(i == 0 && inputVector[i] == 1) {
+                series->append(i, inputVector[i] + distance);
+            } else if((inputVector[i] != inputVector[i - 1]) && inputVector[i] == 1) {
+                series->append(i, inputVector[i - 1] + distance);
+                series->append(i, inputVector[i] + distance);
+            } else if((inputVector[i] != inputVector[i - 1]) && inputVector[i] == 0) {
+                series->append(i, inputVector[i - 1] + distance);
+                series->append(i, inputVector[i] + distance);
+            } else if(inputVector[i] == 1) {
+                series->append(i, inputVector[i] + distance);
+            } else {
+                series->append(i, inputVector[i] + distance);
+            }
+        }
+        distance += 2;
+        chart->addSeries(series);
+    }
+
+    chart->legend()->hide();
+//    chart->addSeries(series);
+    chart->createDefaultAxes();
+    mChartView->setChart(chart);
+}
+
 void MainWindow::openFile() {
     mFilePath =  QFileDialog::getOpenFileName(
-                nullptr,
-                "Open Document",
+                mTabs,
+                ":/verilog_files",
                 QDir::currentPath(),
-                "ocument files (*.v)");
+                "Document files (*.v)");
 
     if(mFilePath.isNull() ) {
         throw std::runtime_error("File dont selected");
@@ -100,27 +131,29 @@ void MainWindow::openFile() {
 }
 
 void MainWindow::startSimulation() {
+
     NetlistBuilder builder(mFilePath);
     builder.buildNetlist();
     auto netlist = builder.getNetlist();
 
-    Simulation simulation(netlist);
+    mSimulation = std::make_shared<Simulation>(netlist);
 
     srand(static_cast<unsigned int>(time(nullptr)));
 
     auto inputNets = netlist->getPrimaryInputNets();
     QVector<QMap<QString, size_t>> primaryInputs {};
-    primaryInputs.resize(5);
-    for(int i = 0; i < 5; ++i) {
+    primaryInputs.resize(10);
+    for(int i = 0; i < 10; ++i) {
         // generate random primary inputs
         for(const auto& el: inputNets) {
             primaryInputs[i].insert(el->getName(), rand() % 2);
         }
     }
     qDebug()<<primaryInputs<<'\n';
-    simulation.eventDrivenSimulation(primaryInputs);
+    mSimulation->eventDrivenSimulation(primaryInputs);
 
-    emit simulationOutput(simulation.getOutput());
+    emit simulationOutput(mSimulation->getOutput());
+    setupChartValues();
 }
 
 void MainWindow::dumpSimulationOutput(std::shared_ptr<QStringList> output) {
