@@ -24,6 +24,7 @@ public:
     static const QString _nor;
 
     static const QMap<QString, GateType> gateTypes;
+    static const QMap<GateType, QString> gateTypesStr;
     static const QMap<QString, NetType> netTypes;
 
 public:
@@ -34,6 +35,7 @@ public:
     static bool isEndModule(const QString& item);
 
     static GateType getGateType(const QString& keyword);
+    static QString getGateTypeStr(GateType gate);
     static NetType getNetType(const QString& keyword);
 };
 

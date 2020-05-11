@@ -1,8 +1,8 @@
-QT += gui
 QT += widgets
-QT += core
 
-CONFIG += c++17 #console
+QT += core gui charts
+
+CONFIG += c++17
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use

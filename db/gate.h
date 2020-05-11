@@ -47,7 +47,7 @@ private:
     std::shared_ptr<Net> mOutputNet;
     QVector<std::shared_ptr<Net>> mInputNets;
     size_t mDelay = 1;
-    size_t mValue;
+    size_t mValue = -1;
 };
 
 #endif // GATE_H

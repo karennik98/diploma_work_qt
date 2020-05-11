@@ -4,6 +4,7 @@
 #include <QtWidgets/QMainWindow>
 #include <QObject>
 #include <QString>
+#include <QTextStream>
 
 #include <memory>
 
@@ -24,17 +25,22 @@ public:
     ~MainWindow();
 public:
     void setupTabBar();
-    void setupTimingTab();
+    void setupSimulationTab();
     void setupTextEditTab();
     void setupFileDialogTab();
 private:
     void setEditor();
 private slots:
     void openFile();
+    void startSimulation();
+    void dumpSimulationOutput(std::shared_ptr<QStringList> output);
+signals:
+    void simulationOutput(std::shared_ptr<QStringList> output);
 private:
     std::shared_ptr<QTabBar> mTabBar;
     QString mFilePath;
     QTextEdit* mTextEdit;
+    QTextEdit* mSimulationOutputTextEdit;
     QTabWidget* mTabs;
 };
 

@@ -17,6 +17,13 @@ const QMap<QString, GateType> VerilogKeywords::gateTypes = {
     {_not, GateType::NOT}
 };
 
+const QMap<GateType, QString> VerilogKeywords::gateTypesStr = {
+    {GateType::OR, _or},
+    {GateType::AND, _and},
+    {GateType::XOR, _xor},
+    {GateType::NOT, _not}
+};
+
 const QMap<QString, NetType> VerilogKeywords::netTypes = {
     {_input, NetType::INPUT},
     {_output, NetType::OUTPUT},
@@ -78,6 +85,14 @@ GateType VerilogKeywords::getGateType(const QString &keyword) {
         }
     }
     return GateType::INVALID;
+}
+
+QString VerilogKeywords::getGateTypeStr(GateType type) {
+    auto gate = gateTypesStr.find(type);
+    if(gate != gateTypesStr.end()) {
+        return gate.value();
+    }
+    return "";
 }
 
 NetType VerilogKeywords::getNetType(const QString &keyword) {

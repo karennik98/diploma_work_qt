@@ -1,4 +1,8 @@
 #include "mainwindow.h"
+#include "netlist_builder/netlistbuilder.h"
+#include "simulation/simulation.h"
+#include "db/netlist.h"
+
 #include <QTabBar>
 #include <QApplication>
 #include <QScreen>
@@ -9,6 +13,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QVBoxLayout>
+#include <QtCharts>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -33,20 +38,36 @@ void MainWindow::setupTabBar() {
 
     setupFileDialogTab();
     setupTextEditTab();
-    setupTimingTab();
+    setupSimulationTab();
     setCentralWidget(centralWidget);
     show();
 }
 
-void MainWindow::setupTimingTab() {
+void MainWindow::setupSimulationTab() {
 
     QWidget* timingAndSimulation = new QWidget(mTabs);
     QVBoxLayout* timingLayout = new QVBoxLayout(mTabs);
+
     QPushButton* startSimulationButton = new QPushButton("Strat simulation", timingAndSimulation);
+    QObject::connect(startSimulationButton, &QPushButton::pressed, this, &MainWindow::startSimulation);
+
+    mSimulationOutputTextEdit = new QTextEdit(mTabs);
+    QObject::connect(this, &MainWindow::simulationOutput, this, &MainWindow::dumpSimulationOutput);
+
+//    QLineSeries *series = new QLineSeries();
+    QChart *chart = new QChart();
+//    chart->legend()->hide();
+//    chart->addSeries(series);
+//    chart->createDefaultAxes();
+    QChartView *chartView = new QChartView(/*chart*/);
+    chartView->setRenderHint(QPainter::Antialiasing);
+
     timingLayout->addWidget(startSimulationButton);
+    timingLayout->addWidget(chartView);
+    timingLayout->addWidget(mSimulationOutputTextEdit);
     timingAndSimulation->setLayout(timingLayout);
 
-    mTabs->addTab(timingAndSimulation,"Timig diagram");
+    mTabs->addTab(timingAndSimulation,"Simulation");
 }
 
 void MainWindow::setupTextEditTab() {
@@ -76,6 +97,37 @@ void MainWindow::openFile() {
     }
 
     setEditor();
+}
+
+void MainWindow::startSimulation() {
+    NetlistBuilder builder(mFilePath);
+    builder.buildNetlist();
+    auto netlist = builder.getNetlist();
+
+    Simulation simulation(netlist);
+
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    auto inputNets = netlist->getPrimaryInputNets();
+    QVector<QMap<QString, size_t>> primaryInputs {};
+    primaryInputs.resize(5);
+    for(int i = 0; i < 5; ++i) {
+        // generate random primary inputs
+        for(const auto& el: inputNets) {
+            primaryInputs[i].insert(el->getName(), rand() % 2);
+        }
+    }
+    qDebug()<<primaryInputs<<'\n';
+    simulation.eventDrivenSimulation(primaryInputs);
+
+    emit simulationOutput(simulation.getOutput());
+}
+
+void MainWindow::dumpSimulationOutput(std::shared_ptr<QStringList> output) {
+    mSimulationOutputTextEdit->clear();
+    for(auto str : *output) {
+        mSimulationOutputTextEdit->append(str);
+    }
 }
 
 void MainWindow::setEditor() {
