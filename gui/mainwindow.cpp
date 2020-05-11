@@ -85,10 +85,25 @@ void MainWindow::setupChartValues() {
     QChart *chart = new QChart();
     size_t distance = 2;
     auto data = mSimulation->getDumpedData();
-    qDebug()<<data;
+
+    QCategoryAxis *axisY = new QCategoryAxis;
+    axisY->setMin(2);
+    axisY->setMax(data.size()*distance + 2);
+
+    QCategoryAxis *axisX = new QCategoryAxis;
+    axisX->setMin(0);
+    axisX->setMax(data.begin().value().size());
+    axisX->setGridLineColor(QColor("red"));
+
+    chart->addAxis(axisY, Qt::AlignLeft);
+    chart->addAxis(axisX, Qt::AlignBottom);
+
     for(auto el = data.begin(); el != data.end(); ++el) {
         QLineSeries* series = new QLineSeries();
         auto inputVector = el.value();
+
+        axisY->append(el.key(), distance + 2);
+
         for(int i = 0; i < inputVector.size(); ++i) {
             if(i == 0 && inputVector[i] == 0) {
                 series->append(i, inputVector[i] + distance);
@@ -108,19 +123,20 @@ void MainWindow::setupChartValues() {
         }
         distance += 2;
         chart->addSeries(series);
+        series->attachAxis(axisX);
+        series->attachAxis(axisY);
     }
 
     chart->legend()->hide();
-//    chart->addSeries(series);
-    chart->createDefaultAxes();
+
     mChartView->setChart(chart);
 }
 
 void MainWindow::openFile() {
     mFilePath =  QFileDialog::getOpenFileName(
                 mTabs,
+                "Open verilog file",
                 ":/verilog_files",
-                QDir::currentPath(),
                 "Document files (*.v)");
 
     if(mFilePath.isNull() ) {
@@ -142,8 +158,8 @@ void MainWindow::startSimulation() {
 
     auto inputNets = netlist->getPrimaryInputNets();
     QVector<QMap<QString, size_t>> primaryInputs {};
-    primaryInputs.resize(10);
-    for(int i = 0; i < 10; ++i) {
+    primaryInputs.resize(30);
+    for(int i = 0; i < 30; ++i) {
         // generate random primary inputs
         for(const auto& el: inputNets) {
             primaryInputs[i].insert(el->getName(), rand() % 2);
